@@ -33,7 +33,7 @@ IF not "%A:~0,1%"=="d" (
    goto end
 )
 FOR %%A IN ("%~pn1") DO SET "InputFolder=%%~nxA"
-for %%i in ("%~dpn1\*.png") do call "%~dp0アルファチャンネル削除して偶数にクロップ.bat" "%%i"
+for %%i in ("%~dpn1\*.png") do call "%~dp0alpha_crop.bat" "%%i"
 
 
 call :libaom_8bit %1
