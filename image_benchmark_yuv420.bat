@@ -132,9 +132,9 @@ for /L %%H in (100,-1,1) do (
       call :JPEG_2000_delayedexpansion %%H
       echo LWLibavVideoSource^("%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k"^)>"%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp2.avs"
       echo ConvertToRGB24^(matrix="PC.601",chromaresample="lanczos4"^)>>"%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp2.avs"
-      %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp2.avs" -y -an "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" JPEG_2000 q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.png"
+      %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp2.avs" -y -an "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" JPEG_2000 q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k"
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.avs"
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp2.avs"
@@ -173,9 +173,9 @@ exit /b
 for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -an -pix_fmt yuvj420p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf"') DO SET msec=%%A
-      %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H_temp.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" vp9 q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H_temp.png"
+      %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" vp9 q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf"
    )
    for %%c in ("%~dp1%InputFolder%_vp9*.csv") do echo. >>"%%c"
@@ -186,9 +186,9 @@ exit /b
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -m 9 -q %%H -f 420 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" "%%i"') DO SET msec=%%A
-      "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" bpg q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H_temp.png"
+      "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" bpg q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg"
    )
    for %%c in ("%~dp1%InputFolder%_bpg*.csv") do echo. >>"%%c"
@@ -216,11 +216,11 @@ for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       %ffmpeg% -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -r 1 -an -pix_fmt yuv420p -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_temp.y4m"
       FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=8 --input-bit-depth^=8 --full-still-picture-hdr --i420 --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_temp.y4m"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf" -o - | %ffmpeg% -y -i --vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H_temp.png"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf" -o - | %ffmpeg% -y -i --vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif" libaom_8bit q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H_temp.png"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif" libaom_8bit q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf"
@@ -235,11 +235,11 @@ for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       %ffmpeg% -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=tv:flags=+accurate_rnd -r 1 -an -pix_fmt yuv420p10le -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_temp.y4m"
       FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=10 --input-bit-depth^=10 --i420 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_temp.y4m"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf" -o - | %ffmpeg% -y -i -  -vf scale=in_color_matrix=bt601:in_range=tv:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H_temp.png"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf" -o - | %ffmpeg% -y -i -  -vf scale=in_color_matrix=bt601:in_range=tv:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif" libaom_10bit q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H_temp.png"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif" libaom_10bit q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf"
@@ -253,11 +253,11 @@ exit /b
 for /L %%H in (255,-10,5) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%ffmpeg% -y -i "%%~i" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -an -pix_fmt yuv420p -strict -1 -f yuv4mpegpipe - ^| timer64 "C:\Software\rav1e\rav1e.exe" --quantizer %%H  -s 0 - -o "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf" -o - | %ffmpeg% -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H_temp.png"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf" -o - | %ffmpeg% -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif" rav1e q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H_temp.png"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif" rav1e q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif"
    )
    for %%c in ("%~dp1%InputFolder%_rav1e*.csv") do echo. >>"%%c"
@@ -283,9 +283,9 @@ exit /b
 for /L %%H in (1,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %flif% -e -Q %%H %1 "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif"') DO SET msec=%%A
-      "%flif%" -d "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H_temp.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif" flif q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H_temp.png"
+      "%flif%" -d "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.png"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif" flif q%%H
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif"
    )
    for %%c in ("%~dp1%InputFolder%_flif*.csv") do echo. >>"%%c"
