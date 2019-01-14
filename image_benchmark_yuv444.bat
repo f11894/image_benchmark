@@ -277,10 +277,3 @@ endlocal
 if "%image_del%"=="1" del %2
 if "%image_del%"=="1" del %3
 exit /b
-
-:LineCount_label
-set /A LineCount=%LineCount%+1
-IF "%LineCount%"=="2" SET "SSIM_R=%~1"
-IF "%LineCount%"=="3" SET "SSIM_G=%~1"
-IF "%LineCount%"=="4" SET "SSIM_B=%~1"
-exit /b
