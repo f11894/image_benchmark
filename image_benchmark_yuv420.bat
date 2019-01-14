@@ -89,7 +89,6 @@ for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
           FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 2x2 -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg"') DO SET msec=%%A
           call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg" libjpeg q%%H
-          if "%image_del%"=="1" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg"
     )
    for %%c in ("%~dp1%InputFolder%_libjpeg*.csv") do echo. >>"%%c"
 )
@@ -101,7 +100,6 @@ for /L %%H in (1,1,100) do (
       if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga" %magick% convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"
       FOR /f "DELIMS=" %%A IN ('%timer% %mozjpeg% -targa  -tune-ssim -q %%H -sample 2x2 -outfile "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"') DO SET msec=%%A
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" mozjpeg q%%
-      if "%image_del%"=="1" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg"
    )
    for %%t in ("%~dpn1\*.tga") do del "%%t"
    for %%c in ("%~dp1%InputFolder%_mozjpeg*.csv") do echo. >>"%%c"
@@ -113,7 +111,6 @@ for /L %%H in (84,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg"') DO SET msec=%%A
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg" guetzli q%%H
-      if "%image_del%"=="1" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg"
    )
    for %%c in ("%~dp1%InputFolder%_guetzli*.csv") do echo. >>"%%c"
 )
@@ -130,8 +127,6 @@ for /L %%H in (100,-1,1) do (
       call :JPEG_2000_delayedexpansion %%H
       %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" -y -an -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" JPEG_2000 q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k"
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.raw"
    )
    for %%c in ("%~dp1%InputFolder%_JPEG_2000*.csv") do echo. >>"%%c"
@@ -152,8 +147,6 @@ for /L %%H in (100,-1,1) do (
       "%JXR_dir%JXRDecApp.exe" -i "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" -o "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp"
       %magick% convert "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" JPEG_XR q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr"
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp"
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp"
    )
@@ -167,8 +160,6 @@ for /L %%H in (63,-1,0) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd" -an -pix_fmt yuvj420p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf"') DO SET msec=%%A
       %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd" -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" vp9 q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf"
    )
    for %%c in ("%~dp1%InputFolder%_vp9*.csv") do echo. >>"%%c"
 )
@@ -180,8 +171,6 @@ for /L %%H in (51,-1,0) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -m 9 -q %%H -f 420 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" "%%i"') DO SET msec=%%A
       "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" bpg q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg"
    )
    for %%c in ("%~dp1%InputFolder%_bpg*.csv") do echo. >>"%%c"
 )
@@ -195,8 +184,6 @@ for /L %%H in (51,-1,0) do (
       chcp 932
       %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd" -pix_fmt rgb24 "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic" heif q%%H
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic"
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp"
       del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"
    )
    for %%c in ("%~dp1%InputFolder%_heif*.csv") do echo. >>"%%c"
@@ -212,8 +199,6 @@ for /L %%H in (50,-2,0) do (
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
       chcp 932
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif" libaom_8bit q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
@@ -231,8 +216,6 @@ for /L %%H in (50,-2,0) do (
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
       chcp 932
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif" libaom_10bit q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
@@ -262,8 +245,6 @@ for /L %%H in (1,1,100) do (
           FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -quality %%H "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp"') DO SET msec=%%A
           "%magick% convert" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.png"
           call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp" webp q%%H
-          if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.png"
-          if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp"
     )
    for %%c in ("%~dp1%InputFolder%_webp*.csv") do echo. >>"%%c"
 )
@@ -277,8 +258,6 @@ for /L %%H in (1,1,100) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %flif% -e -Q %%H %1 "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif"') DO SET msec=%%A
       "%flif%" -d "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif" flif q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv420_q%%H.flif"
    )
    for %%c in ("%~dp1%InputFolder%_flif*.csv") do echo. >>"%%c"
 )
