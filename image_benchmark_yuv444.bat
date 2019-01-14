@@ -232,9 +232,7 @@ for /f "tokens=11" %%I in ("%Parsed_ssim%") do set "SSIM_yuv=%%I"
 set SSIM_y=%SSIM_y:~2%
 set SSIM_yuv=%SSIM_yuv:~4%
 
-echo WScript.Echo (%Filesize%*8)/(%orig_w%*%orig_h%)>"%TEMP%\%~n1_bpp.vbs"
-FOR /f "DELIMS=" %%A IN ('cscript //nologo "%TEMP%\%~n1_bpp.vbs"') DO SET bpp_c=%%A
-del "%TEMP%\%~n1_bpp.vbs"
+FOR /f "DELIMS=" %%A IN ('PowerShell ^(%Filesize%*8^)/^(%orig_w%*%orig_h%^)') DO SET bpp_c=%%A
 
 if not "%butteraugli_set%"=="1" goto butteraugli_skip
 pushd %butteraugli_dir%
