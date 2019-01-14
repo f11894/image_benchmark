@@ -200,15 +200,13 @@ exit /b
 :heif
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% ffmpeg -y -framerate 1 -i "%%i" -pix_fmt yuv420p -vf "scale=out_color_matrix=smpte170m:out_range=pc:sws_flags=lanczos+accurate_rnd+bitexact+full_chroma_inp+full_chroma_int" -crf %%H -preset slower -x265-params "colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full" -f hevc "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% ffmpeg -y -framerate 1 -i "%%i" -pix_fmt yuv420p -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -crf %%H -preset slower -x265-params "colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full" -f hevc "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"') DO SET msec=%%A
       MP4Box -add-image "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265":primary -ab heic -new "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic"
       chcp 932
-      ffmpeg -i "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265" -sws_flags lanczos+accurate_rnd+bitexact+full_chroma_inp+full_chroma_int -pix_fmt rgb24 "%OUTPUT_DIR%\%%~ni_heif_ffmpeg_yuv420_q%%H.bmp"
-      rem "C:\Software\spibench-20170902\spibench.exe" -t 1 -b "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp" -p high "C:\Software\MassiGra\iftwic.spi" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic"
-      rem call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic" heif q%%H
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_heif_ffmpeg_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic" heif q%%H
+      ffmpeg -i "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -pix_fmt rgb24 "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp"
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic" heif q%%H
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic"
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_heif_ffmpeg_yuv420_q%%H.bmp"
+      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.bmp"
       del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"
    )
    for %%c in ("%~dp1%InputFolder%_heif*.csv") do echo. >>"%%c"
