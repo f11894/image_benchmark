@@ -1,10 +1,8 @@
 set butteraugli_path=C:\Software\butteraugli\butteraugli.exe
-set IMcon=C:\Software\ImageMagick\convert.exe
+set magick=C:\Software\ImageMagick\magick.exe
 set ffmpeg=C:\Software\ffmpeg\ffmpeg.exe
-
+set mp4box="C:\Program Files\GPAC\mp4box.exe"
 set timer=C:\Software\timer\timer32.exe
-
-set mkvextract="C:\Program Files\MKVToolNix\mkvextract.exe"
 
 set flif=C:\Software\FLIF-0.3\flif.exe
 set fuif=C:\Software\fuif\fuif.exe
@@ -69,7 +67,7 @@ goto end
 :libjpeg
 for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
-          FOR /f "DELIMS=" %%A IN ('%timer% %IMcon% "%%i" -sampling-factor 1x1 -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
+          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 1x1 -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
           call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" libjpeg q%%H
           if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"
     )
@@ -80,7 +78,7 @@ exit /b
 :mozjpeg
 for /L %%H in (1,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga" magick convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"
+      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga" %magick% convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"
       FOR /f "DELIMS=" %%A IN ('%timer% %mozjpeg% -targa  -tune-ssim -q %%H -sample 1x1 -outfile "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"') DO SET msec=%%A
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" mozjpeg q%%
       if "%image_del%"=="1" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg"
@@ -104,7 +102,7 @@ exit /b
 :JPEG_2000
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
-      magick convert -strip "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
+      %magick% convert -strip "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
       FOR /f "DELIMS=" %%A IN ('%timer% %opj_dir%opj_compress.exe -i "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png" -r %%H -o "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k"') DO SET msec=%%A
       "%opj_dir%opj_decompress.exe" -i "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" -o "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H_temp.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" JPEG_2000 q%%H
@@ -119,10 +117,10 @@ exit /b
 :JPEG_XR
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" "%IMcon%" "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
+      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" "%magick% convert" "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
       FOR /f "DELIMS=" %%A IN ('%timer% %JXR_dir%JXREncApp.exe -i "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" -q %%H -o "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr"') DO SET msec=%%A
       "%JXR_dir%JXRDecApp.exe" -i "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" -o "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp"
-      magick convert "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png"
+      %magick% convert "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" JPEG_XR q%%H
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr"
@@ -136,8 +134,8 @@ exit /b)
 :vp9
 for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% "%ffmpeg%" -y -i "%%~i" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -an -pix_fmt yuvj444p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"') DO SET msec=%%A
-      "%ffmpeg%" -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H_temp.png"
+      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -an -pix_fmt yuvj444p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"') DO SET msec=%%A
+      %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H_temp.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" vp9 q%%H
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H_temp.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"
@@ -188,10 +186,10 @@ exit /b
 :libaom_8bit
 for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      "%ffmpeg%" -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -r 1 -an -pix_fmt yuvj444p -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
+      %ffmpeg% -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -r 1 -an -pix_fmt yuvj444p -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
       FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=8 --input-bit-depth^=8 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | "%ffmpeg%" -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png"
-      MP4Box -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png"
+      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
       chcp 932
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom q%%H
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png"
@@ -206,10 +204,10 @@ exit /b
 :libaom_10bit
 for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      "%ffmpeg%" -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -r 1 -an -pix_fmt yuv444p10le -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
+      %ffmpeg% -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -r 1 -an -pix_fmt yuv444p10le -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
       FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=10 --input-bit-depth^=10 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | "%ffmpeg%" -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png"
-      MP4Box -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png"
+      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
       chcp 932
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom q%%H
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png"
@@ -227,31 +225,31 @@ exit /b
 :ssim
 setlocal
 
-FOR /f "DELIMS=" %%A IN ('identify -format %%w "%~1"') DO SET orig_w=%%A
-FOR /f "DELIMS=" %%A IN ('identify -format %%h "%~1"') DO SET orig_h=%%A
+FOR /f "DELIMS=" %%A IN ('%magick% identify -format %%w "%~1"') DO SET orig_w=%%A
+FOR /f "DELIMS=" %%A IN ('%magick% identify -format %%h "%~1"') DO SET orig_h=%%A
 
 
 SET Filesize=%~z3
 
-FOR /f "DELIMS=" %%A IN ('compare -metric SSIM "%~1" "%~2" NUL 2^>^&1') DO SET SSIM_RGB=%%A
+FOR /f "DELIMS=" %%A IN ('%magick% compare -metric SSIM "%~1" "%~2" NUL 2^>^&1') DO SET "SSIM_RGB=%%A"
+FOR /f "DELIMS=" %%A IN ('%magick% compare -metric PSNR "%~1" "%~2" NUL 2^>^&1') DO SET "PSNR_RGB=%%A"
+if "%PSNR_RGB%"=="1.#INF" set PSNR_RGB=INF
+
 :ffmpeg_label
-FOR /f "DELIMS=" %%A IN ('ffmpeg -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi psnr -f null NUL 2^>^&1 ^| find "Parsed_psnr"') DO SET Parsed_psnr=%%A
+FOR /f "DELIMS=" %%A IN ('%ffmpeg% -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi psnr -f null NUL 2^>^&1 ^| find "Parsed_psnr"') DO SET "Parsed_psnr=%%A"
 if "%Parsed_psnr%"=="" goto ffmpeg_label
-for /f "tokens=5" %%I in ("%Parsed_psnr%") do set PSNR_y=%%I
-for /f "tokens=8" %%I in ("%Parsed_psnr%") do set PSNR_yuv=%%I
+for /f "tokens=5" %%I in ("%Parsed_psnr%") do set "PSNR_y=%%I"
+for /f "tokens=8" %%I in ("%Parsed_psnr%") do set "PSNR_yuv=%%I"
 set PSNR_y=%PSNR_y:~2%
 set PSNR_yuv=%PSNR_yuv:~8%
 
 :ffmpeg_label2
-FOR /f "DELIMS=" %%A IN ('ffmpeg -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi ssim -f null NUL 2^>^&1 ^| find "Parsed_ssim"') DO SET Parsed_ssim=%%A
+FOR /f "DELIMS=" %%A IN ('%ffmpeg% -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi ssim -f null NUL 2^>^&1 ^| find "Parsed_ssim"') DO SET "Parsed_ssim=%%A"
 if "%Parsed_ssim%"=="" goto ffmpeg_label2
-for /f "tokens=5" %%I in ("%Parsed_ssim%") do set SSIM_y=%%I
-for /f "tokens=11" %%I in ("%Parsed_ssim%") do set SSIM_yuv=%%I
+for /f "tokens=5" %%I in ("%Parsed_ssim%") do set "SSIM_y=%%I"
+for /f "tokens=11" %%I in ("%Parsed_ssim%") do set "SSIM_yuv=%%I"
 set SSIM_y=%SSIM_y:~2%
 set SSIM_yuv=%SSIM_yuv:~4%
-
-FOR /f "DELIMS=" %%A IN ('compare -metric PSNR "%~1" "%~2" NUL 2^>^&1') DO SET PSNR_RGB=%%A
-if "%PSNR_RGB%"=="1.#INF" set PSNR_RGB=INF
 
 echo WScript.Echo (%Filesize%*8)/(%orig_w%*%orig_h%)>"%TEMP%\%~n1_bpp.vbs"
 FOR /f "DELIMS=" %%A IN ('cscript //nologo "%TEMP%\%~n1_bpp.vbs"') DO SET bpp_c=%%A
