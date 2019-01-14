@@ -70,7 +70,7 @@ for /L %%H in (1,1,100) do (
           FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 1x1 -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
           call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" libjpeg q%%H
     )
-   for %%c in ("%~dp1%InputFolder%_libjpeg*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_libjpeg_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -82,7 +82,7 @@ for /L %%H in (1,1,100) do (
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" mozjpeg q%%
    )
    for %%t in ("%~dpn1\*.tga") do del "%%t"
-   for %%c in ("%~dp1%InputFolder%_mozjpeg*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_mozjpeg_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -92,7 +92,7 @@ for /L %%H in (84,1,100) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg"') DO SET msec=%%A
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" guetzli q%%H
    )
-   for %%c in ("%~dp1%InputFolder%_guetzli*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_guetzli_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -105,7 +105,7 @@ for /L %%H in (100,-1,1) do (
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" JPEG_2000 q%%H
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
    )
-   for %%c in ("%~dp1%InputFolder%_JPEG_2000*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_JPEG_2000_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -120,7 +120,7 @@ for /L %%H in (100,-1,1) do (
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp"
    )
-   for %%c in ("%~dp1%InputFolder%_JPEG_XR*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_JPEG_XR_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b)
 
@@ -133,7 +133,7 @@ for /L %%H in (63,-1,0) do (
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"
    )
-   for %%c in ("%~dp1%InputFolder%_vp9*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_vp9_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -144,7 +144,7 @@ for /L %%H in (51,-1,0) do (
       "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" bpg q%%H "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.log"
    )
-   for %%c in ("%~dp1%InputFolder%_bpg*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_bpg_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -157,7 +157,7 @@ for /L %%H in (2,2,100) do (
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif"
    )
-   for %%c in ("%~dp1%InputFolder%_flif*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_flif_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -168,7 +168,7 @@ for /L %%H in (2,2,100) do (
       "%fuif%" -d "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" fuif q%%H
    )
-   for %%c in ("%~dp1%InputFolder%_fuif*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_fuif_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -177,14 +177,14 @@ for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd" -r 1 -an -pix_fmt yuvj444p -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
       FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=8 --input-bit-depth^=8 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd" -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd" -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom q%%H
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom_8bit q%%H
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf"
    )
-   for %%c in ("%~dp1%InputFolder%_libaom_8bit*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_libaom_8bit_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -193,14 +193,14 @@ for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd" -r 1 -an -pix_fmt yuv444p10le -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
       FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=10 --input-bit-depth^=10 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"') DO SET msec=%%A
-      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd" -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png"
+      "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd" -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom q%%H
+      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom_10bit q%%H
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf"
    )
-   for %%c in ("%~dp1%InputFolder%_libaom_10bit*.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_libaom_10bit_yuv444*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -247,17 +247,17 @@ popd
 
 :butteraugli_skip
 
-SET /P X=%Filesize%,<NUL >>"%InputFolder%_%4_Filesize.csv"
-SET /P X=%bpp_c%,<NUL >>"%InputFolder%_%4_bpp.csv"
-SET /P X=%PSNR_y%,<NUL >>"%InputFolder%_%4_PSNR_y.csv"
-SET /P X=%PSNR_yuv%,<NUL >>"%InputFolder%_%4_PSNR_yuv.csv"
-SET /P X=%PSNR_RGB%,<NUL >>"%InputFolder%_%4_PSNR_RGB.csv"
-SET /P X=%SSIM_RGB%,<NUL >>"%InputFolder%_%4_SSIM_RGB.csv"
-SET /P X=%SSIM_y%,<NUL >>"%InputFolder%_%4_SSIM_y.csv"
-SET /P X=%SSIM_yuv%,<NUL >>"%InputFolder%_%4_SSIM_yuv.csv"
+SET /P X=%Filesize%,<NUL >>"%InputFolder%_%4_yuv444_Filesize.csv"
+SET /P X=%bpp_c%,<NUL >>"%InputFolder%_%4_yuv444_bpp.csv"
+SET /P X=%PSNR_y%,<NUL >>"%InputFolder%_%4_yuv444_PSNR_y.csv"
+SET /P X=%PSNR_yuv%,<NUL >>"%InputFolder%_%4_yuv444_PSNR_yuv.csv"
+SET /P X=%PSNR_RGB%,<NUL >>"%InputFolder%_%4_yuv444_PSNR_RGB.csv"
+SET /P X=%SSIM_RGB%,<NUL >>"%InputFolder%_%4_yuv444_SSIM_RGB.csv"
+SET /P X=%SSIM_y%,<NUL >>"%InputFolder%_%4_yuv444_SSIM_y.csv"
+SET /P X=%SSIM_yuv%,<NUL >>"%InputFolder%_%4_yuv444_SSIM_yuv.csv"
 
-if defined butteraugli SET /P X=%butteraugli%,<NUL >>"%InputFolder%_%4_butteraugli.csv"
-SET /P X=%msec%,<NUL >>"%InputFolder%_%4_msec.csv"
+if defined butteraugli SET /P X=%butteraugli%,<NUL >>"%InputFolder%_%4_yuv444_butteraugli.csv"
+SET /P X=%msec%,<NUL >>"%InputFolder%_%4_yuv444_msec.csv"
 
 endlocal
 if "%image_del%"=="1" del "%~2"
