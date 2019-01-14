@@ -97,7 +97,7 @@ exit /b
 :mozjpeg
 for /L %%H in (1,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga" magick convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"
+      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga" %magick% convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"
       FOR /f "DELIMS=" %%A IN ('%timer% %mozjpeg% -targa  -tune-ssim -q %%H -sample 2x2 -outfile "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"') DO SET msec=%%A
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" mozjpeg q%%
       if "%image_del%"=="1" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg"
@@ -124,7 +124,7 @@ for /L %%H in (100,-1,1) do (
       set JPEG_2000_output="%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k"
       set JPEG_2000_input_raw="%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.raw"
       set JPEG_2000_input="%%i"
-      magick convert -strip "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_temp.png"
+      %magick% convert -strip "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_temp.png"
       echo ImageSource^("%OUTPUT_DIR%\%%~ni_j2k_yuv420_temp.png",end=0^)>"%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.avs"
       echo ConvertToYV12^(matrix="PC.601",chromaresample="lanczos4"^)>>"%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.avs"
       %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.avs" -y -an -pix_fmt yuv420p "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.yuv"
@@ -158,7 +158,7 @@ for /L %%H in (100,-1,1) do (
       if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp" "%magick% convert" "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp"
       FOR /f "DELIMS=" %%A IN ('%timer% %JXR_dir%JXREncApp.exe -i "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp" -q %%H -d 1 -o "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr"') DO SET msec=%%A
       "%JXR_dir%JXRDecApp.exe" -i "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" -o "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp"
-      magick convert "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png"
+      %magick% convert "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" JPEG_XR q%%H
       if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png"
       if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr"
