@@ -130,8 +130,6 @@ for /L %%H in (63,-1,0) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuvj444p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"') DO SET msec=%%A
       %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" vp9 q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"
    )
    for %%c in ("%~dp1%InputFolder%_vp9_yuv444*.csv") do echo. >>"%%c"
 )
@@ -154,8 +152,6 @@ for /L %%H in (2,2,100) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %flif% -e -Q %%H "%%~i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif"') DO SET msec=%%A
       "%flif%" -d "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" flif q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif"
    )
    for %%c in ("%~dp1%InputFolder%_flif_yuv444*.csv") do echo. >>"%%c"
 )
