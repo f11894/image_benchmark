@@ -168,19 +168,11 @@ exit /b
 :vp9
 for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      echo ImageSource^("%%i",end=0^)>"%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.avs"
-      echo ConvertToYV12^(matrix="PC.601"^)>>"%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.avs"
-      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -i "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.avs" -y -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 4 -an "%TEMP%\%%~ni_vp9_yuv420_q%%H.mkv"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% "%ffmpeg%" -y -i "%%~i" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -an -pix_fmt yuvj420p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%TEMP%\%%~ni_vp9_yuv420_q%%H.mkv"') DO SET msec=%%A
       %mkvextract% --ui-language en tracks "%TEMP%\%%~ni_vp9_yuv420_q%%H.mkv" 0:"%TEMP%\%%~ni_vp9_yuv420_q%%H.ivf"
-      echo LWLibavVideoSource^("%TEMP%\%%~ni_vp9_yuv420_q%%H.ivf"^)>"%TEMP%\%%~ni_vp9_yuv420_q%%H_temp2.avs"
-      echo ConvertToRGB24^(matrix="PC.601"^)>>"%TEMP%\%%~ni_vp9_yuv420_q%%H_temp2.avs"
-      "%ffmpeg%" -i "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp2.avs" -y -an "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.png"
+      "%ffmpeg%" -y -i "%TEMP%\%%~ni_vp9_yuv420_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.png"
       call :ssim "%%i" "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.png" "%TEMP%\%%~ni_vp9_yuv420_q%%H.ivf" vp9 q%%H
       if "%refimage_del%"=="1" del "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.png"
-      del "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp.avs"
-      del "%TEMP%\%%~ni_vp9_yuv420_q%%H_temp2.avs"
-      del "%TEMP%\%%~ni_vp9_yuv420_q%%H.ivf.lwi"
-      del "%TEMP%\%%~ni_vp9_yuv420_q%%H.mkv
    )
    for %%c in ("%~dp1%InputFolder%_vp9*.csv") do echo. >>"%%c"
 )

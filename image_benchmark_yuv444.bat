@@ -128,13 +128,13 @@ exit /b)
 :vp9
 for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% "%ffmpeg%" -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -an -pix_fmt yuvj444 -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%TEMP%\%%~ni_vp9_yuv444_q%%H.mkv"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% "%ffmpeg%" -y -i "%%~i" -vf scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+accurate_rnd -an -pix_fmt yuvj444p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%TEMP%\%%~ni_vp9_yuv444_q%%H.mkv"') DO SET msec=%%A
       %mkvextract% --ui-language en tracks "%TEMP%\%%~ni_vp9_yuv444_q%%H.mkv" 0:"%TEMP%\%%~ni_vp9_yuv444_q%%H.ivf"
-      "%ffmpeg%" -i "%TEMP%\%%~ni_vp9_yuv444_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png"
+      "%ffmpeg%" -y -i "%TEMP%\%%~ni_vp9_yuv444_q%%H.ivf" -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd -an "%TEMP%\%%~ni_vp9_yuv444_q%%H_temp.png"
       call :ssim "%%i" "%TEMP%\%%~ni_vp9_yuv444_q%%H_temp.png" "%TEMP%\%%~ni_vp9_yuv444_q%%H.ivf" vp9 q%%H
       if "%refimage_del%"=="1" del "%TEMP%\%%~ni_vp9_yuv444_q%%H_temp.png"
    )
-   for %%c in ("%~dp1%InputFolder%_vp9.csv") do echo. >>"%%c"
+   for %%c in ("%~dp1%InputFolder%_vp9*.csv") do echo. >>"%%c"
 )
 exit /b
 
@@ -224,12 +224,7 @@ SET Filesize=%~z3
 
 FOR /f "DELIMS=" %%A IN ('compare -metric SSIM "%~1" "%~2" NUL 2^>^&1') DO SET SSIM_RGB=%%A
 :ffmpeg_label
-echo ImageSource^("%~1",end=0^) >"%~dpn1_yuv.avs"
-echo ConvertToYV24(matrix="Rec601")>>"%~dpn1_yuv.avs"
-echo ImageSource^("%~2",end=0^) >"%~dpn2_yuv.avs"
-echo ConvertToYV24(matrix="Rec601")>>"%~dpn2_yuv.avs"
-
-FOR /f "DELIMS=" %%A IN ('ffmpeg -i "%~dpn1_yuv.avs" -i "%~dpn2_yuv.avs" -lavfi psnr -f null NUL 2^>^&1 ^| find "Parsed_psnr"') DO SET Parsed_psnr=%%A
+FOR /f "DELIMS=" %%A IN ('ffmpeg -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi psnr -f null NUL 2^>^&1 ^| find "Parsed_psnr"') DO SET Parsed_psnr=%%A
 if "%Parsed_psnr%"=="" goto ffmpeg_label
 for /f "tokens=5" %%I in ("%Parsed_psnr%") do set PSNR_y=%%I
 for /f "tokens=8" %%I in ("%Parsed_psnr%") do set PSNR_yuv=%%I
@@ -237,15 +232,12 @@ set PSNR_y=%PSNR_y:~2%
 set PSNR_yuv=%PSNR_yuv:~8%
 
 :ffmpeg_label2
-FOR /f "DELIMS=" %%A IN ('ffmpeg -i "%~dpn1_yuv.avs" -i "%~dpn2_yuv.avs" -lavfi ssim -f null NUL 2^>^&1 ^| find "Parsed_ssim"') DO SET Parsed_ssim=%%A
+FOR /f "DELIMS=" %%A IN ('ffmpeg -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi ssim -f null NUL 2^>^&1 ^| find "Parsed_ssim"') DO SET Parsed_ssim=%%A
 if "%Parsed_ssim%"=="" goto ffmpeg_label2
 for /f "tokens=5" %%I in ("%Parsed_ssim%") do set SSIM_y=%%I
 for /f "tokens=11" %%I in ("%Parsed_ssim%") do set SSIM_yuv=%%I
 set SSIM_y=%SSIM_y:~2%
 set SSIM_yuv=%SSIM_yuv:~4%
-
-del "%~dpn1_yuv.avs"
-del "%~dpn2_yuv.avs"
 
 FOR /f "DELIMS=" %%A IN ('compare -metric PSNR "%~1" "%~2" NUL 2^>^&1') DO SET PSNR_RGB=%%A
 if "%PSNR_RGB%"=="1.#INF" set PSNR_RGB=INF
