@@ -201,7 +201,6 @@ for /L %%H in (50,-2,0) do (
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif" libaom_8bit q%%H
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf"
-      del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
    )
    for %%c in ("%~dp1%InputFolder%_libaom_8bit*.csv") do echo. >>"%%c"
 )
@@ -218,7 +217,6 @@ for /L %%H in (50,-2,0) do (
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif" libaom_10bit q%%H
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf"
-      del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
    )
    for %%c in ("%~dp1%InputFolder%_libaom_10bit*.csv") do echo. >>"%%c"
 )
@@ -232,8 +230,6 @@ for /L %%H in (255,-10,5) do (
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif"
       chcp 932
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif" rav1e q%%H
-      if "%refimage_del%"=="1" del "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png"
-      if "%image_del%"=="1" del "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif"
    )
    for %%c in ("%~dp1%InputFolder%_rav1e*.csv") do echo. >>"%%c"
 )
