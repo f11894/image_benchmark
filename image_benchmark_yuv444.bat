@@ -178,11 +178,15 @@ exit /b
 for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       "%ffmpeg%" -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -an -pix_fmt yuvj444 -strict -1 "%TEMP%\%%~ni_libaom_8bit_yuv444_temp.y4m"
-      FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=8 --input-bit-depth^=8 --i444 --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" "%TEMP%\%%~ni_libaom_8bit_yuv444_temp.y4m"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=8 --input-bit-depth^=8 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" "%TEMP%\%%~ni_libaom_8bit_yuv444_temp.y4m"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | "%ffmpeg%" -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png"
+      MP4Box -add-image "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
+      chcp 932
       call :ssim "%%i" "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png" "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom q%%H
       if "%refimage_del%"=="1" del "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H_temp.png"
       del "%TEMP%\%%~ni_libaom_8bit_yuv444_temp.y4m"
+      del "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.ivf"
+      del "%TEMP%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
    )
    for %%c in ("%~dp1%InputFolder%_libaom_8bit*.csv") do echo. >>"%%c"
 )
@@ -192,11 +196,15 @@ exit /b
 for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       "%ffmpeg%" -y -i "%%~i" -vf scale=out_color_matrix=bt601:out_range=pc:flags=+accurate_rnd -an -pix_fmt yuv444p10 -strict -1 "%TEMP%\%%~ni_libaom_10bit_yuv444_temp.y4m"
-      FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=10 --input-bit-depth^=10 --i444 --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" "%TEMP%\%%~ni_libaom_10bit_yuv444_temp.y4m"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=10 --input-bit-depth^=10 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=3 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" "%TEMP%\%%~ni_libaom_10bit_yuv444_temp.y4m"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | "%ffmpeg%" -i - -vf scale=in_color_matrix=bt601:in_range=pc:flags=+accurate_rnd  -an "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png"
-      call :ssim "%%i" "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png" "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" libaom q%%H
+      MP4Box -add-image "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
+      chcp 932
+      call :ssim "%%i" "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png" "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom q%%H
       if "%refimage_del%"=="1" del "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H_temp.png"
       del "%TEMP%\%%~ni_libaom_10bit_yuv444_temp.y4m"
+      del "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.ivf"
+      del "%TEMP%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
    )
    for %%c in ("%~dp1%InputFolder%_libaom_10bit*.csv") do echo. >>"%%c"
 )
