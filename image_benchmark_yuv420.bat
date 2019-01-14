@@ -335,13 +335,13 @@ exit /b
 :ssim
 setlocal
 
-FOR /f "DELIMS=" %%A IN ('identify -format %%w %1') DO SET orig_w=%%A
-FOR /f "DELIMS=" %%A IN ('identify -format %%h %1') DO SET orig_h=%%A
+FOR /f "DELIMS=" %%A IN ('identify -format %%w "%~1"') DO SET orig_w=%%A
+FOR /f "DELIMS=" %%A IN ('identify -format %%h "%~1"') DO SET orig_h=%%A
 
 
 SET Filesize=%~z3
 
-FOR /f "DELIMS=" %%A IN ('compare -metric SSIM %1 %2 NUL 2^>^&1') DO SET SSIM_RGB=%%A
+FOR /f "DELIMS=" %%A IN ('compare -metric SSIM "%~1" "%~2" NUL 2^>^&1') DO SET SSIM_RGB=%%A
 
 :ffmpeg_label
 echo ImageSource^("%~1",end=0^) >"%TEMP%\%~n1_yuv.avs"
@@ -367,7 +367,7 @@ set SSIM_yuv=%SSIM_yuv:~4%
 del "%TEMP%\%~n1_yuv.avs"
 del "%TEMP%\%~n2_yuv.avs
 
-FOR /f "DELIMS=" %%A IN ('compare -metric PSNR %1 %2 NUL 2^>^&1') DO SET PSNR_RGB=%%A
+FOR /f "DELIMS=" %%A IN ('compare -metric PSNR "%~1" "%~2" NUL 2^>^&1') DO SET PSNR_RGB=%%A
 if "%PSNR_RGB%"=="1.#INF" set PSNR_RGB=INF
 
 echo WScript.Echo (%Filesize%*8)/(%orig_w%*%orig_h%)>"%TEMP%\%~n1_bpp.vbs"
@@ -376,7 +376,7 @@ del "%TEMP%\%~n1_bpp.vbs"
 
 if not "%butteraugli_set%"=="1" goto butteraugli_skip
 pushd %butteraugli_dir%
-FOR /f "DELIMS=" %%A IN ('%butteraugli_exe% %1 %2') DO SET butteraugli=%%A
+FOR /f "DELIMS=" %%A IN ('%butteraugli_exe% "%~1" "%~2"') DO SET butteraugli=%%A
 popd
 
 :butteraugli_skip
