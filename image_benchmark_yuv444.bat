@@ -56,8 +56,8 @@ goto end
 :libjpeg
 for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
-          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 1x1 -interlace jpeg -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
-          call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" libjpeg %%H
+          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%~i" -sampling-factor 1x1 -interlace jpeg -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
+          call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" libjpeg %%H
     )
 )
 exit /b
@@ -65,9 +65,9 @@ exit /b
 :mozjpeg
 for /L %%H in (1,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga" %magick% convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"
+      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga" %magick% convert "%%~i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"
       FOR /f "DELIMS=" %%A IN ('%timer% %mozjpeg% -targa  -tune-ssim -q %%H -sample 1x1 -outfile "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"') DO SET msec=%%A
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" mozjpeg %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" mozjpeg %%H
    )
    for %%t in ("%~dpn1\*.tga") do del "%%t"
 )
@@ -76,8 +76,8 @@ exit /b
 :guetzli
 for /L %%H in (84,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg"') DO SET msec=%%A
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" guetzli %%H
+      FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%~i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg"') DO SET msec=%%A
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" guetzli %%H
    )
 )
 exit /b
@@ -85,10 +85,10 @@ exit /b
 :JPEG_2000
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
-      %magick% convert -strip "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
+      %magick% convert -strip "%%~i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
       FOR /f "DELIMS=" %%A IN ('%timer% %opj_dir%opj_compress.exe -i "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png" -r %%H -o "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k"') DO SET msec=%%A
       "%opj_dir%opj_decompress.exe" -i "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" -o "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" JPEG_2000 %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" JPEG_2000 %%H
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
    )
 )
@@ -97,11 +97,11 @@ exit /b
 :JPEG_XR
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" "%magick% convert" "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
+      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" "%magick% convert" "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
       FOR /f "DELIMS=" %%A IN ('%timer% %JXR_dir%JXREncApp.exe -i "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" -q %%H -o "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr"') DO SET msec=%%A
       "%JXR_dir%JXRDecApp.exe" -i "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" -o "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp"
       %magick% convert "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" JPEG_XR %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" JPEG_XR %%H
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp"
    )
@@ -113,7 +113,7 @@ for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuvj444p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"') DO SET msec=%%A
       %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" vp9 %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" vp9 %%H
    )
 )
 exit /b
@@ -121,9 +121,9 @@ exit /b
 :bpg
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -q %%H -f 444 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" "%%i"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -q %%H -f 444 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" "%%~i"') DO SET msec=%%A
       "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" bpg %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" bpg %%H
    )
 )
 exit /b
@@ -146,7 +146,7 @@ for /L %%H in (2,2,100) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %flif% -e -Q %%H "%%~i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif"') DO SET msec=%%A
       "%flif%" -d "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" flif %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" flif %%H
    )
 )
 exit /b
@@ -156,7 +156,7 @@ for /L %%H in (2,2,100) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %fuif% -Q %%H "%%~i" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif"') DO SET msec=%%A
       "%fuif%" -d "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" fuif %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" fuif %%H
    )
 )
 exit /b
@@ -169,7 +169,7 @@ for /L %%H in (50,-2,0) do (
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom_8bit %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom_8bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf"
    )
@@ -184,7 +184,7 @@ for /L %%H in (50,-2,0) do (
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=tv:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom_10bit %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom_10bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf"
    )

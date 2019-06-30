@@ -35,7 +35,7 @@ IF not "%A:~0,1%"=="d" (
 FOR %%A IN ("%~pn1") DO SET "InputFolder=%%~nxA"
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
-for %%i in ("%~dpn1\*.png") do call "%~dp0alpha_crop.bat" "%%i"
+for %%i in ("%~dpn1\*.png") do call "%~dp0alpha_crop.bat" "%%~i"
 
 call :libjpeg %1
 call :mozjpeg %1
@@ -57,9 +57,9 @@ goto end
 :libjpeg
 for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
-          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 2x2 -interlace jpeg -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg"') DO SET msec=%%A
+          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%~i" -sampling-factor 2x2 -interlace jpeg -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg"') DO SET msec=%%A
           %magick% convert "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.png"
-          call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg" libjpeg %%H
+          call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv420_q%%H.jpg" libjpeg %%H
     )
 )
 exit /b
@@ -67,10 +67,10 @@ exit /b
 :mozjpeg
 for /L %%H in (10,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga" %magick% convert "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"
+      if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga" %magick% convert "%%~i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"
       FOR /f "DELIMS=" %%A IN ('%timer% %mozjpeg% -targa  -tune-ssim -q %%H -sample 2x2 -outfile "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_temp.tga"') DO SET msec=%%A
       %magick% convert "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" mozjpeg q%%
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv420_q%%H.jpg" mozjpeg q%%
    )
    for %%t in ("%~dpn1\*.tga") do del "%%t"
 )
@@ -79,8 +79,8 @@ exit /b
 :guetzli
 for /L %%H in (84,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg"') DO SET msec=%%A
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg" guetzli %%H
+      FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%~i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg"') DO SET msec=%%A
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv420_q%%H.jpg" guetzli %%H
    )
 )
 exit /b
@@ -90,12 +90,12 @@ for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
       set JPEG_2000_output="%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k"
       set JPEG_2000_input_raw="%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.raw"
-      set JPEG_2000_input="%%i"
-      %ffmpeg% -i "%%i" -y -an -pix_fmt yuv420p -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.yuv"
+      set JPEG_2000_input="%%~i"
+      %ffmpeg% -i "%%~i" -y -an -pix_fmt yuv420p -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.yuv"
       ren "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.yuv" %%~ni_j2k_yuv420_q%%H_temp.raw
       call :JPEG_2000_delayedexpansion %%H
       %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" -y -an -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" JPEG_2000 %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H.j2k" JPEG_2000 %%H
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv420_q%%H_temp.raw"
    )
 )
@@ -110,11 +110,11 @@ exit /b
 :JPEG_XR
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp" %magick% convert "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp"
+      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp" %magick% convert "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp"
       FOR /f "DELIMS=" %%A IN ('%timer% %JXR_dir%JXREncApp.exe -i "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp" -q %%H -d 1 -o "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr"') DO SET msec=%%A
       "%JXR_dir%JXRDecApp.exe" -i "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" -o "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp"
       %magick% convert "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" JPEG_XR %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.jxr" JPEG_XR %%H
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_temp.bmp"
       del "%OUTPUT_DIR%\%%~ni_jxr_yuv420_q%%H.bmp"
    )
@@ -126,7 +126,7 @@ for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
       FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuvj420p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf"') DO SET msec=%%A
       %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" vp9 %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv420_q%%H.ivf" vp9 %%H
    )
 )
 exit /b
@@ -134,9 +134,9 @@ exit /b
 :bpg
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -m 9 -q %%H -f 420 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" "%%i"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -m 9 -q %%H -f 420 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" "%%~i"') DO SET msec=%%A
       "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" bpg %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv420_q%%H.bpg" bpg %%H
    )
 )
 exit /b
@@ -144,11 +144,11 @@ exit /b
 :heif
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -framerate 1 -i "%%i" -pix_fmt yuv420p -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -crf %%H -tune ssim -preset veryslow -x265-params "colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full" -f hevc "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"') DO SET msec=%%A
+      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -framerate 1 -i "%%~i" -pix_fmt yuv420p -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -crf %%H -tune ssim -preset veryslow -x265-params "colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full" -f hevc "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"') DO SET msec=%%A
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265":primary -ab heic -new "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic"
       chcp 932
       %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -pix_fmt rgb24 "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.png"
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic" heif %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.heic" heif %%H
       del "%OUTPUT_DIR%\%%~ni_heif_yuv420_q%%H.h265"
    )
 )
@@ -162,7 +162,7 @@ for /L %%H in (50,-2,0) do (
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif" libaom_8bit %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.avif" libaom_8bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv420_q%%H.ivf"
    )
@@ -177,7 +177,7 @@ for /L %%H in (50,-2,0) do (
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf" -o - | %ffmpeg% -y -i -  -vf "scale=in_color_matrix=bt601:in_range=tv:flags=+lanczos+accurate_rnd+bitexact"  -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif" libaom_10bit %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.avif" libaom_10bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv420_q%%H.ivf"
    )
@@ -191,7 +191,7 @@ for /L %%H in (255,-10,5) do (
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf" -o - | %ffmpeg% -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif" rav1e %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_rav1e_yuv420_q%%H.avif" rav1e %%H
    )
 )
 exit /b
@@ -199,14 +199,14 @@ exit /b
 :SVT-AV1
 for /L %%H in (62,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      set SVT-AV1_input="%%i"
+      set SVT-AV1_input="%%~i"
       set SVT-AV1_input_yuv="%%~dpni.yuv"
       set SVT-AV1_output="%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf"
       call :SVT-AV1_delayedexpansion %%H
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf" -o - | %ffmpeg% -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.avif"
       chcp 932
-      call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.avif" SVT-AV1 %%H
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.avif" SVT-AV1 %%H
    )
 )
 exit /b
@@ -222,9 +222,9 @@ exit /b
 :webp
 for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
-          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -quality %%H "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp"') DO SET msec=%%A
+          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%~i" -quality %%H "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp"') DO SET msec=%%A
           %magick% convert "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.png"
-          call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp" webp %%H
+          call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_webp_yuv420_q%%H.webp" webp %%H
     )
 )
 exit /b
