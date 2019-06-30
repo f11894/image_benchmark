@@ -267,8 +267,8 @@ popd
 
 :butteraugli_skip
 if not exist "%InputFolder%_%~4_yuv420_csv" mkdir "%InputFolder%_%~4_yuv420_csv"
-if not exist "%InputFolder%_%~4_yuv420_csv\%~n1_%~4_yuv420.csv" echo quality,Filesize,bpp,PSNR_y,PSNR_yuv,PSNR_RGB,SSIM_RGB,SSIM_y,SSIM_yuv%butteraugli_column%>"%InputFolder%_%~4_yuv420_csv\%~n1_%~4_yuv420.csv"
-echo %~5,%Filesize%,%bpp_c%,%PSNR_y%,%PSNR_yuv%,%PSNR_RGB%,%SSIM_RGB%,%SSIM_y%,%SSIM_yuv%%butteraugli%>>"%InputFolder%_%~4_yuv420_csv\%~n1_%~4_yuv420.csv"
+if not exist "%InputFolder%_%~4_yuv420_csv\%~n1_%~4_yuv420.csv" echo quality,Filesize,bpp,msec,PSNR_y,PSNR_yuv,PSNR_RGB,SSIM_RGB,SSIM_y,SSIM_yuv%butteraugli_column%>"%InputFolder%_%~4_yuv420_csv\%~n1_%~4_yuv420.csv"
+echo %~5,%Filesize%,%bpp_c%,%msec%,%PSNR_y%,%PSNR_yuv%,%PSNR_RGB%,%SSIM_RGB%,%SSIM_y%,%SSIM_yuv%%butteraugli%>>"%InputFolder%_%~4_yuv420_csv\%~n1_%~4_yuv420.csv"
 
 endlocal
 if "%image_del%"=="1" del "%~2"
