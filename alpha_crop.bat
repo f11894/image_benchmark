@@ -1,5 +1,5 @@
-@echo off
 set magick=C:\Software\ImageMagick\magick.exe
+set multiple=2
 IF "%~x1"=="" set Folder=1&&Goto Folder
 
 :enc
@@ -8,15 +8,13 @@ IF "%~x1"=="" set Folder=1&&Goto Folder
 FOR /f "DELIMS=" %%A IN ('%magick% identify -format %%w "%~1"') DO SET Width=%%A
 FOR /f "DELIMS=" %%A IN ('%magick% identify -format %%h "%~1"') DO SET Height=%%A
 
-set Height2=%Height:~-1,1%
-set Width2=%Width:~-1,1%
-for %%i in (1,3,5,7,9) do (
-   if "%Width2%"=="%%i" set Width_Odd=1
-   if "%Height2%"=="%%i" set Height_Odd=1
-)
+set /a Width_mod=Width %% %multiple%
+set /a Height_mod=Height %% %multiple%
+if not "%Width_mod%"=="0" set Width_Odd=1
+if not "%Height_mod%"=="0" set Height_Odd=1
 
-if "%Width_Odd%"=="1" (set /a Width_Resize=%Width%-1) else set Width_Resize=%Width%
-if "%Height_Odd%"=="1" (set /a Height_Resize=%Height%-1) else set Height_Resize=%Height%
+set /a Width_Resize=%Width%-%Width_mod%
+set /a Height_Resize=%Height%-%Height_mod%
 
 if "%Alpha%"=="1" (
      %magick% convert "%~1" -background white -flatten -alpha off png24:"%~dpn1_alpha.png"&&del "%~1"
