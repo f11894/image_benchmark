@@ -199,24 +199,13 @@ exit /b
 :SVT-AV1
 for /L %%H in (62,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      set SVT-AV1_input="%%~i"
-      set SVT-AV1_input_yuv="%%~dpni.yuv"
-      set SVT-AV1_output="%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf"
-      call :SVT-AV1_delayedexpansion %%H
+      FOR /f "DELIMS=" %%A IN ('%ffmpeg% -y -nostdin -i "%%~i" -frames 1 -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuv420p -strict -1 -f yuv4mpegpipe - ^| %timer% %SVT-AV1% -i stdin -enc-mode 0 -n 1 -fps 1 -rc 0 -q %%H -b "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf" -o - | %ffmpeg% -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.avif"
       chcp 932
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.png" "%OUTPUT_DIR%\%%~ni_SVT-AV1_yuv420_q%%H.avif" SVT-AV1 %%H
    )
 )
-exit /b
-
-:SVT-AV1_delayedexpansion
-FOR /f "DELIMS=" %%A IN ('identify -format %%w %SVT-AV1_input%') DO SET orig_w=%%A
-FOR /f "DELIMS=" %%A IN ('identify -format %%h %SVT-AV1_input%') DO SET orig_h=%%A
-%ffmpeg% -y -i %SVT-AV1_input% -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuv420p -strict -1 -f rawvideo %SVT-AV1_input_yuv%
-FOR /f "DELIMS=" %%A IN ('%timer% %SVT-AV1% -i %SVT-AV1_input_yuv% -enc-mode 0 -w %orig_w% -h %orig_h% -n 1 -fps 1 -rc 0 -q %~1 -b %SVT-AV1_output%') DO SET msec=%%A
-del %SVT-AV1_input_yuv%
 exit /b
 
 :webp
