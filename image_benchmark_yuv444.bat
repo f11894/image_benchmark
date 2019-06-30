@@ -48,6 +48,7 @@ rem call :flif_lossy %1
 
 call :libaom_8bit %1
 call :bpg %1
+call :heif  %1
 
 goto end
 
@@ -123,6 +124,19 @@ for /L %%H in (51,-1,0) do (
       FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -q %%H -f 444 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" "%%i"') DO SET msec=%%A
       "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg"
       call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" bpg %%H
+   )
+)
+exit /b
+
+:heif
+for /L %%H in (51,-1,0) do (
+   for %%i in ("%~dpn1\*.png") do (
+      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -framerate 1 -i "%%~i" -pix_fmt yuv444p -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -crf %%H -tune ssim -preset veryslow -x265-params "colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full" -f hevc "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265"') DO SET msec=%%A
+      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265":primary -ab heic -new "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.heic"
+      chcp 932
+      %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -pix_fmt rgb24 "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.png"
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.heic" heif %%H
+      del "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265"
    )
 )
 exit /b
