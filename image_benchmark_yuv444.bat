@@ -55,7 +55,7 @@ goto end
 :libjpeg
 for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
-          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 1x1 -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
+          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%i" -sampling-factor 1x1 -interlace jpeg -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
           call :ssim "%%i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" libjpeg %%H
     )
 )
