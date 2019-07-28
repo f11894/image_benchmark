@@ -49,6 +49,8 @@ rem call :flif_lossy %1
 call :libaom_8bit %1
 call :bpg %1
 call :heif  %1
+call :Pik %1
+call :Pik_fastmode %1
 
 goto end
 
@@ -187,6 +189,34 @@ for /L %%H in (50,-2,0) do (
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom_10bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf"
+   )
+)
+exit /b
+
+:Pik
+for %%H in (3.0,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.0,1.9,1.8,1.7,1.6,1.5,1.4,1.3,1.2,1.1,1.0,0.9,0.8,0.7,0.6,0.5) do (
+   for %%i in ("%~dpn1\*.png") do (
+      pushd "%~1"
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{wsl /mnt/c/Users/ekusu/pik/build/cpik --distance %%H "%%~nxi" "%%~ni_pik_yuv444_q%%H.pik"}"') DO SET msec=%%A
+      wsl /mnt/c/Users/ekusu/pik/build/dpik "%%~ni_pik_yuv444_q%%H.pik" "%%~ni_pik_yuv444_q%%H_temp.png"
+      move "%%~ni_pik_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_pik_yuv444_q%%H_temp.png"
+      move "%%~ni_pik_yuv444_q%%H.pik" "%OUTPUT_DIR%\%%~ni_pik_yuv444_q%%H.pik"
+      popd
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_pik_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_pik_yuv444_q%%H.pik" pik %%H
+   )
+)
+exit /b
+
+:Pik_fastmode
+for %%H in (3.0,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.0,1.9,1.8,1.7,1.6,1.5,1.4,1.3,1.2,1.1,1.0,0.9,0.8,0.7,0.6,0.5) do (
+   for %%i in ("%~dpn1\*.png") do (
+      pushd "%~1"
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{wsl /mnt/c/Users/ekusu/pik/build/cpik --distance %%H --fast "%%~nxi" "%%~ni_pik_fastmode_yuv444_q%%H.pik"}"') DO SET msec=%%A
+      wsl /mnt/c/Users/ekusu/pik/build/dpik "%%~ni_pik_fastmode_yuv444_q%%H.pik" "%%~ni_pik_fastmode_yuv444_q%%H_temp.png"
+      move "%%~ni_pik_fastmode_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_pik_fastmode_yuv444_q%%H_temp.png"
+      move "%%~ni_pik_fastmode_yuv444_q%%H.pik" "%OUTPUT_DIR%\%%~ni_pik_fastmode_yuv444_q%%H.pik"
+      popd
+      call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_pik_fastmode_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_pik_fastmode_yuv444_q%%H.pik" pik_fastmode %%H
    )
 )
 exit /b
