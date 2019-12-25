@@ -2,7 +2,6 @@ set butteraugli_path=C:\Software\butteraugli\butteraugli.exe
 set magick=C:\Software\ImageMagick\magick.exe
 set ffmpeg=C:\Software\ffmpeg\ffmpeg.exe
 set mp4box="C:\Program Files\GPAC\mp4box.exe"
-set timer=C:\Software\timer\timer32.exe
 
 set flif=C:\Software\FLIF-0.3\flif.exe
 set fuif=C:\Software\fuif\fuif.exe
@@ -37,18 +36,18 @@ FOR %%A IN ("%~pn1") DO SET "InputFolder=%%~nxA"
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 call :libjpeg %1
 call :mozjpeg %1
-rem call :guetzli %1
+call :guetzli %1
 
-call :JPEG_2000 %1
-call :JPEG_XR %1
+rem call :JPEG_2000 %1
+rem call :JPEG_XR %1
 
 rem call :vp9 %1
 rem call :fuif_lossy %1
 rem call :flif_lossy %1
 
 call :libaom_8bit %1
-call :bpg %1
-call :heif  %1
+rem call :bpg %1
+rem call :heif  %1
 call :Pik %1
 call :Pik_fastmode %1
 
@@ -58,7 +57,7 @@ goto end
 :libjpeg
 for /L %%H in (1,1,100) do (
     for %%i in ("%~dpn1\*.png") do (
-          FOR /f "DELIMS=" %%A IN ('%timer% %magick% convert "%%~i" -sampling-factor 1x1 -interlace jpeg -quality %%H "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg"') DO SET msec=%%A
+          FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%magick% convert '%%~i' -sampling-factor 1x1 -interlace jpeg -quality %%H '%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg'}"') DO SET msec=%%A
           call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_libjpeg_yuv444_q%%H.jpg" libjpeg %%H
     )
 )
@@ -68,7 +67,7 @@ exit /b
 for /L %%H in (1,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
       if not exist "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga" %magick% convert "%%~i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"
-      FOR /f "DELIMS=" %%A IN ('%timer% %mozjpeg% -targa  -tune-ssim -q %%H -sample 1x1 -outfile "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%mozjpeg% -targa  -tune-ssim -q %%H -sample 1x1 -outfile '%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg' '%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_temp.tga'}"') DO SET msec=%%A
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_mozjpeg_yuv444_q%%H.jpg" mozjpeg %%H
    )
    for %%t in ("%~dpn1\*.tga") do del "%%t"
@@ -78,7 +77,7 @@ exit /b
 :guetzli
 for /L %%H in (84,1,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %guetzli% --quality %%H "%%~i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%guetzli% --quality %%H '%%~i' '%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg'}"') DO SET msec=%%A
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" "%OUTPUT_DIR%\%%~ni_guetzli_yuv444_q%%H.jpg" guetzli %%H
    )
 )
@@ -88,7 +87,7 @@ exit /b
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
       %magick% convert -strip "%%~i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
-      FOR /f "DELIMS=" %%A IN ('%timer% %opj_dir%opj_compress.exe -i "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png" -r %%H -o "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%opj_dir%opj_compress.exe -i '%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png' -r %%H -o '%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k'}"') DO SET msec=%%A
       "%opj_dir%opj_decompress.exe" -i "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" -o "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.png"
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_j2k_yuv444_q%%H.j2k" JPEG_2000 %%H
       del "%OUTPUT_DIR%\%%~ni_j2k_yuv444_temp.png"
@@ -99,8 +98,8 @@ exit /b
 :JPEG_XR
 for /L %%H in (100,-1,1) do (
    for %%i in ("%~dpn1\*.png") do (
-      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" "%magick% convert" "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
-      FOR /f "DELIMS=" %%A IN ('%timer% %JXR_dir%JXREncApp.exe -i "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" -q %%H -o "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr"') DO SET msec=%%A
+      if not exist "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp" %magick% convert "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp"
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{"%JXR_dir%JXREncApp.exe" -i '%OUTPUT_DIR%\%%~ni_jxr_yuv444_temp.bmp' -q %%H -o '%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr'}"') DO SET msec=%%A
       "%JXR_dir%JXRDecApp.exe" -i "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" -o "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp"
       %magick% convert "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.bmp" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png"
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_jxr_yuv444_q%%H.jxr" JPEG_XR %%H
@@ -113,7 +112,7 @@ exit /b)
 :vp9
 for /L %%H in (63,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuv444p -r 1 -vcodec vp9 -b:v 0 -qmin %%H -qmax %%H -threads 8 -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%ffmpeg% -y -i '%%~i' -vf "scale^=out_color_matrix^=bt601:out_range^=pc:flags^=+lanczos+accurate_rnd+bitexact" -an -pix_fmt yuv444p -r 1 -vcodec vp9 -b:v 0 -crf %%H -threads 8 -an '%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf'}"') DO SET msec=%%A
       %ffmpeg% -y -i "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png"
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_vp9_yuv444_q%%H.ivf" vp9 %%H
    )
@@ -123,7 +122,7 @@ exit /b
 :bpg
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %bpg_dir%bpgenc.exe -e x265 -q %%H -f 444 -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" "%%~i"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%bpg_dir%bpgenc.exe -e x265 -q %%H -f 444 -o '%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg' '%%~i'}"') DO SET msec=%%A
       "%bpg_dir%bpgdec.exe" -o "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg"
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_bpg_yuv444_q%%H.bpg" bpg %%H
    )
@@ -133,7 +132,7 @@ exit /b
 :heif
 for /L %%H in (51,-1,0) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %ffmpeg% -y -framerate 1 -i "%%~i" -pix_fmt yuv444p -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -crf %%H -tune ssim -preset veryslow -x265-params "colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full" -f hevc "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%ffmpeg% -y -framerate 1 -i '%%~i' -pix_fmt yuv444p -vf scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact -crf %%H -tune ssim -preset veryslow -x265-params colormatrix=smpte170m:transfer=smpte170m:colorprim=smpte170m:range=full -f hevc '%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265'}"') DO SET msec=%%A
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265":primary -ab heic -new "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.heic"
       chcp 932
       %ffmpeg% -i "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.h265" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -pix_fmt rgb24 "%OUTPUT_DIR%\%%~ni_heif_yuv444_q%%H.png"
@@ -146,7 +145,7 @@ exit /b
 :flif_lossy
 for /L %%H in (2,2,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %flif% -e -Q %%H "%%~i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%flif% -e -Q %%H '%%~i' '%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif'}"') DO SET msec=%%A
       "%flif%" -d "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png"
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_flif_yuv444_q%%H.flif" flif %%H
    )
@@ -156,7 +155,7 @@ exit /b
 :fuif_lossy
 for /L %%H in (2,2,100) do (
    for %%i in ("%~dpn1\*.png") do (
-      FOR /f "DELIMS=" %%A IN ('%timer% %fuif% -Q %%H "%%~i" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%fuif% -Q %%H '%%~i' '%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif'}"') DO SET msec=%%A
       "%fuif%" -d "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png"
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_fuif_yuv444_q%%H.fuif" fuif %%H
    )
@@ -167,7 +166,7 @@ exit /b
 for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -r 1 -an -pix_fmt yuv444p -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
-      FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=8 --input-bit-depth^=8 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=2 --tile-rows^=1 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{"%libaom_dir%aomenc.exe" --ivf --bit-depth=8 --input-bit-depth=8 --i444 --full-still-picture-hdr --passes=2 --tile-columns=2 --tile-rows=1 --threads=8 --end-usage=q --cq-level=%%H -o '%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf' '%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m'}"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
       chcp 932
@@ -182,7 +181,7 @@ exit /b
 for /L %%H in (50,-2,0) do (
    for %%i in ("%~dpn1\*.png") do (
       %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=tv:flags=+lanczos+accurate_rnd+bitexact" -r 1 -an -pix_fmt yuv444p10le -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
-      FOR /f "DELIMS=" %%A IN ('%timer% "%libaom_dir%aomenc.exe" --ivf --bit-depth^=10 --input-bit-depth^=10 --i444 --full-still-picture-hdr --passes^=2 --tile-columns^=2 --tile-rows^=1 --threads^=8 --end-usage^=q --cq-level^=%%H -o "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{"%libaom_dir%aomenc.exe" --ivf --bit-depth=10 --input-bit-depth=10 --i444 --full-still-picture-hdr --passes=2 --tile-columns=2 --tile-rows=1 --threads=8 --end-usage=q --cq-level=%%H -o '%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf' '%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m'}"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=tv:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png"
       %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
       chcp 932
@@ -197,7 +196,7 @@ exit /b
 for %%H in (3.0,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.0,1.9,1.8,1.7,1.6,1.5,1.4,1.3,1.2,1.1,1.0,0.9,0.8,0.7,0.6,0.5) do (
    for %%i in ("%~dpn1\*.png") do (
       pushd "%~1"
-      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{wsl /mnt/c/Users/ekusu/pik/build/cpik --distance %%H "%%~nxi" "%%~ni_pik_yuv444_q%%H.pik"}"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{wsl /mnt/c/Users/ekusu/pik/build/cpik --distance %%H '%%~nxi' '%%~ni_pik_yuv444_q%%H.pik'}"') DO SET msec=%%A
       wsl /mnt/c/Users/ekusu/pik/build/dpik "%%~ni_pik_yuv444_q%%H.pik" "%%~ni_pik_yuv444_q%%H_temp.png"
       move "%%~ni_pik_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_pik_yuv444_q%%H_temp.png"
       move "%%~ni_pik_yuv444_q%%H.pik" "%OUTPUT_DIR%\%%~ni_pik_yuv444_q%%H.pik"
@@ -211,7 +210,7 @@ exit /b
 for %%H in (3.0,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.0,1.9,1.8,1.7,1.6,1.5,1.4,1.3,1.2,1.1,1.0,0.9,0.8,0.7,0.6,0.5) do (
    for %%i in ("%~dpn1\*.png") do (
       pushd "%~1"
-      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{wsl /mnt/c/Users/ekusu/pik/build/cpik --distance %%H --fast "%%~nxi" "%%~ni_pik_fastmode_yuv444_q%%H.pik"}"') DO SET msec=%%A
+      FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{wsl /mnt/c/Users/ekusu/pik/build/cpik --distance %%H --fast '%%~nxi' '%%~ni_pik_fastmode_yuv444_q%%H.pik'}"') DO SET msec=%%A
       wsl /mnt/c/Users/ekusu/pik/build/dpik "%%~ni_pik_fastmode_yuv444_q%%H.pik" "%%~ni_pik_fastmode_yuv444_q%%H_temp.png"
       move "%%~ni_pik_fastmode_yuv444_q%%H_temp.png" "%OUTPUT_DIR%\%%~ni_pik_fastmode_yuv444_q%%H_temp.png"
       move "%%~ni_pik_fastmode_yuv444_q%%H.pik" "%OUTPUT_DIR%\%%~ni_pik_fastmode_yuv444_q%%H.pik"
