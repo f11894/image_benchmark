@@ -100,8 +100,10 @@ for /L %%H in (100,-1,1) do (
 exit /b
 
 :JPEG_2000_delayedexpansion
-FOR /f "DELIMS=" %%A IN ('identify -format %%w "%JPEG_2000_input%"') DO SET orig_w=%%A
-FOR /f "DELIMS=" %%A IN ('identify -format %%h "%JPEG_2000_input%"') DO SET orig_h=%%A
+for %%i in (%magick%) do pushd "%%~dpi"
+FOR /f "DELIMS=" %%A IN ('.\magick.exe identify -format %%w "%JPEG_2000_input%"') DO SET orig_w=%%A
+FOR /f "DELIMS=" %%A IN ('.\magick.exe identify -format %%h "%JPEG_2000_input%"') DO SET orig_h=%%A
+popd
 FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{%opj_dir%opj_compress.exe -i %JPEG_2000_input_raw% -F %orig_w%,%orig_h%,3,8,u@1x1:2x2:2x2 -mct 0 -r %1 -o %JPEG_2000_output%}"') DO SET msec=%%A
 exit /b
 
