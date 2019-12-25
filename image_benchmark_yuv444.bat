@@ -168,7 +168,7 @@ for /L %%H in (50,-2,0) do (
       %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=pc:flags=+lanczos+accurate_rnd+bitexact" -r 1 -an -pix_fmt yuv444p -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
       FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{"%libaom_dir%aomenc.exe" --ivf --bit-depth=8 --input-bit-depth=8 --i444 --full-still-picture-hdr --passes=2 --tile-columns=2 --tile-rows=1 --threads=8 --end-usage=q --cq-level=%%H -o '%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf' '%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m'}"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=pc:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png"
-      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
+      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf":primary -brand avif -ab avif -ab miaf -ab MA1B -new "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.avif"
       chcp 932
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_q%%H.ivf" libaom_8bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_8bit_yuv444_temp.y4m"
@@ -183,7 +183,7 @@ for /L %%H in (50,-2,0) do (
       %ffmpeg% -y -i "%%~i" -vf "scale=out_color_matrix=bt601:out_range=tv:flags=+lanczos+accurate_rnd+bitexact" -r 1 -an -pix_fmt yuv444p10le -strict -1 "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
       FOR /f "tokens=3" %%A IN ('PowerShell Measure-Command "{"%libaom_dir%aomenc.exe" --ivf --bit-depth=10 --input-bit-depth=10 --i444 --full-still-picture-hdr --passes=2 --tile-columns=2 --tile-rows=1 --threads=8 --end-usage=q --cq-level=%%H -o '%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf' '%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m'}"') DO SET msec=%%A
       "%libaom_dir%aomdec.exe" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf" -o - | %ffmpeg% -y -i - -vf "scale=in_color_matrix=bt601:in_range=tv:flags=+lanczos+accurate_rnd+bitexact" -an "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png"
-      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -ab avif -ab miaf -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
+      %mp4box% -add-image "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.ivf":primary -brand avif -ab avif -ab miaf -ab MA1B -new "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif"
       chcp 932
       call :ssim "%%~i" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.png" "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_q%%H.avif" libaom_10bit %%H
       del "%OUTPUT_DIR%\%%~ni_libaom_10bit_yuv444_temp.y4m"
