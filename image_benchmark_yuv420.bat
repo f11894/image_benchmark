@@ -1,7 +1,6 @@
 set butteraugli_path=C:\Software\butteraugli\butteraugli.exe
-set magick=C:\Software\ImageMagick\magick.exe
-set ffmpeg=C:\Software\ffmpeg\ffmpeg.exe
-set ffmpeg_vmaf=C:\Software\ffmpeg_vmaf\ffmpeg.exe
+set magick="C:\Software\ImageMagick\magick.exe"
+set ffmpeg="C:\Software\ffmpeg\ffmpeg.exe"
 set mp4box="C:\Program Files\GPAC\mp4box.exe"
 
 set flif=C:\Software\FLIF-0.3\flif.exe
@@ -227,38 +226,34 @@ exit /b
 
 :ssim
 setlocal
-
-FOR /f "DELIMS=" %%A IN ('%magick% identify -format %%w "%~1"') DO SET orig_w=%%A
-FOR /f "DELIMS=" %%A IN ('%magick% identify -format %%h "%~1"') DO SET orig_h=%%A
-
-
+for %%i in (%magick%) do pushd "%%~dpi"
+FOR /f "DELIMS=" %%A IN ('.\magick.exe identify -format %%w "%~1"') DO SET orig_w=%%A
+FOR /f "DELIMS=" %%A IN ('.\magick.exe identify -format %%h "%~1"') DO SET orig_h=%%A
 SET Filesize=%~z3
-
-FOR /f "DELIMS=" %%A IN ('%magick% compare -metric SSIM "%~1" "%~2" NUL 2^>^&1') DO SET "SSIM_RGB=%%A"
-FOR /f "DELIMS=" %%A IN ('%magick% compare -metric PSNR "%~1" "%~2" NUL 2^>^&1') DO SET "PSNR_RGB=%%A"
+FOR /f "DELIMS=" %%A IN ('.\magick.exe compare -metric SSIM "%~1" "%~2" NUL 2^>^&1') DO SET "SSIM_RGB=%%A"
+FOR /f "DELIMS=" %%A IN ('.\magick.exe compare -metric PSNR "%~1" "%~2" NUL 2^>^&1') DO SET "PSNR_RGB=%%A"
+popd
 if "%PSNR_RGB%"=="1.#INF" set PSNR_RGB=INF
 
 :ffmpeg_label
-FOR /f "DELIMS=" %%A IN ('%ffmpeg% -r 1 -i "%~1" -r 1 -i "%~2" -pix_fmt yuvj444p -lavfi psnr -f null NUL 2^>^&1 ^| find "Parsed_psnr"') DO SET Parsed_psnr=%%A
+for %%i in (%ffmpeg%) do pushd "%%~dpi"
+FOR /f "DELIMS=" %%A IN ('.\ffmpeg.exe -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi psnr -f null NUL 2^>^&1 ^| find "Parsed_psnr"') DO SET "Parsed_psnr=%%A"
+popd
 if "%Parsed_psnr%"=="" goto ffmpeg_label
-for /f "tokens=5" %%I in ("%Parsed_psnr%") do set PSNR_y=%%I
-for /f "tokens=8" %%I in ("%Parsed_psnr%") do set PSNR_yuv=%%I
+for /f "tokens=5" %%I in ("%Parsed_psnr%") do set "PSNR_y=%%I"
+for /f "tokens=8" %%I in ("%Parsed_psnr%") do set "PSNR_yuv=%%I"
 set PSNR_y=%PSNR_y:~2%
 set PSNR_yuv=%PSNR_yuv:~8%
 
 :ffmpeg_label2
-FOR /f "DELIMS=" %%A IN ('%ffmpeg% -r 1 -i "%~1" -r 1 -i "%~2" -pix_fmt yuvj444p -lavfi ssim -f null NUL 2^>^&1 ^| find "Parsed_ssim"') DO SET Parsed_ssim=%%A
+for %%i in (%ffmpeg%) do pushd "%%~dpi"
+FOR /f "DELIMS=" %%A IN ('.\ffmpeg.exe -i "%~1" -i "%~2" -pix_fmt yuvj444p -lavfi ssim -f null NUL 2^>^&1 ^| find "Parsed_ssim"') DO SET "Parsed_ssim=%%A"
+popd
 if "%Parsed_ssim%"=="" goto ffmpeg_label2
-for /f "tokens=5" %%I in ("%Parsed_ssim%") do set SSIM_y=%%I
-for /f "tokens=11" %%I in ("%Parsed_ssim%") do set SSIM_yuv=%%I
+for /f "tokens=5" %%I in ("%Parsed_ssim%") do set "SSIM_y=%%I"
+for /f "tokens=11" %%I in ("%Parsed_ssim%") do set "SSIM_yuv=%%I"
 set SSIM_y=%SSIM_y:~2%
 set SSIM_yuv=%SSIM_yuv:~4%
-
-:ffmpeg_label3
-pushd "C:\Software\ffmpeg_vmaf\model"
-FOR /f "tokens=6" %%A IN ('%ffmpeg% -loglevel quiet -r 1 -i "%~2" -pix_fmt yuv420p -f yuv4mpegpipe - ^| %ffmpeg_vmaf% -r 1 -i - -r 1 -i "%~1" -filter_complex "libvmaf=model_path=vmaf_v0.6.1.pkl" -an -f null NUL 2^>^&1 ^| find "VMAF score"') DO SET VMAF=%%A
-popd
-if "%VMAF%"=="" goto ffmpeg_label3
 
 FOR /f "DELIMS=" %%A IN ('PowerShell ^(%Filesize%*8^)/^(%orig_w%*%orig_h%^)') DO SET bpp_c=%%A
 
